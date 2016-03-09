@@ -1,0 +1,623 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+<!-- saved from url=(0017)http://localhost/ -->
+<html id="html"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>MoneyGraph</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1,maximum-scale=1, user-scalable=no">
+</head>
+ <body id="body">
+  <div id="gl-html-content">
+  <canvas id="game-board" width="720" height="500" color="#000000" style="
+ cursor: none;
+"></canvas>
+
+  
+  
+</div>
+
+<script>
+var _canvas_api_enabled=window.HTMLCanvasElement == null?true:false;
+if(_canvas_api_enabled==false){
+//global variables
+var _neg_min=-1000;
+var _neg_max=0;
+var _canvas_width;
+var _canvas_height;
+var _target_width;
+var _target_height;
+var _sprite_width;
+var _sprite_height;
+var _min_x;
+var _min_y;
+var _max_x;
+var _max_y;
+var _bdate;
+var _curDate;
+var _cn;
+var _ctx;
+var _score;
+var _sprites;
+var _objects;
+var _gBoards;
+var _timerId;
+var  _gLevel;
+var _gMode;
+var _cMode;
+var _step=1000;
+var _ticks=1000;
+var _tPos={};
+var _tid=0;
+var _farPlaneDistance= 520;
+var $$$SetGameBeginTime;
+var $$$SetDefaultVariables;
+var $$$SetDecayTime;
+var $$$StartDecayTimer;
+var $$$LoadBirds;
+var $$$DrawGameGraphics;
+var $$$RedrawGameBoard
+var $$$RedrawTargetBoard
+var $$$RedrawSprites
+var $$$RedrawObject
+var $$$RedrawScoreBoard
+var $$$RedrawTimeBoard
+var $$$RedrawTitleBoard
+var enum_Dir={
+NN:1,
+NE:2,
+EE:3,
+SE:4,
+SS:5,
+SW:6,
+WW:7,
+NW:8};
+var _font="30px Arial";
+_time_step=10;
+var isGamePaused;
+var isGameover;
+var winScore=100000;
+var rects=[];
+//global functions
+function randomize(min,max){
+   var randVal=min+(Math.random()*(max-min));
+    return Math.round(randVal);
+}
+
+function Sprite(e)
+{
+   this. id= e. id;
+   this.pos=e.pos;
+   this.bounds=e.bounds;
+   this.behaviour=e.behaviour;
+   this.decayValue=e.decayValue;
+   this.direction=e.direction;
+   this.shot=e.shot;
+   this.spritePhase=e.spritePhase;
+   return this;  			          
+}
+var Rectangle=function(e)
+{
+  this.x=e.x;
+  this.y=e.y;
+  this.width=e.width;
+  this.height=e.height;
+  this.id=e.id;
+  this.isFocused=e.isFocused;
+  this.content=e.content;
+  this.content_hover=e.content_hover;
+  return this;
+ }
+function timer(code,time,tid)
+{
+  _tid= setInterval(code,time);
+}
+
+function togglePauseState()
+{
+   isGamePaused = !isGamePaused;
+   if(isGamePaused==true)
+    {
+          var txt="PAUSED";
+            var txt_width=_ctx.measureText(txt).width;
+          _ctx.fillText(txt,(_canvas_width/2)-(txt_width/2),(_canvas_height/2)-20);
+        }
+}
+function startBackSound()
+{
+  aud2.volume=0.03;
+  aud2.loop=true;
+  aud2.play();
+}
+function stopBackSound()
+{
+  aud2.pause();
+}
+function updateSpritePosition()
+{
+ if(isGamePaused){}
+else{
+ for(var i in _sprites){
+  var e=_sprites[i];
+ if(e !=undefined){
+	  if(e.shot==true){
+		    e.pos.x=e.pos.x;
+			e.bounds.x=e.bounds.x;
+			e.bounds.y+=3;
+			e.pos.y+=3;
+			e.spritePhase=e.bounds.y;
+	  }
+	  else
+	  {
+      e.bounds.x+=_gLevel;
+      e.pos.x+=_gLevel;
+	  }
+}
+UpdateGameGraphics();
+}}}
+
+//load our resources
+
+var img0=new Image();
+img0.src="web game artboard.png";
+var img1=new Image();
+img1.src="targ.png";
+var img2=new Image();
+img2.src="birdie_left.png";
+var img3=new Image();
+img3.src="birdie_right.png";
+var img4=new Image();
+img4.src="titles.png";
+var img5=new Image();
+img5.src="targ1.png";
+var img6=new Image();
+img6.src="birdie_shot.png";
+var img7=new Image();
+img7.src="playBtn.jpg";
+var img8=new Image();
+img8.src="playBtnHover.jpg";
+var img9=new Image();
+img9.src="quitBtn.jpg";
+var img10=new Image();
+img10.src="quitBtnHover.jpg";
+var img11=new Image();
+img11.src="aboutBtn.jpg";
+var img12=new Image();
+img12.src="aboutBtnHover.jpg";
+var img13=new Image();
+img13.src="about_page.jpg";
+var img14=new Image();
+img14.src="pointer2.png";
+
+var aud0=new Audio();
+aud0.src="Explo1.wav";
+var aud1=new Audio();
+aud1.sc="chirp.wav"; 
+var aud2=new Audio();
+aud2.src="back.wav";
+
+var PerformGamePhysics=function()
+{
+
+if(isGamePaused==false)
+{
+    var secs=_bdate.getSeconds();
+     var mins=_bdate.getMinutes();
+       var hr=_bdate.getHours();
+     secs-=1;
+      if(secs<=0)
+        {
+           secs=59;
+              mins-=1;
+                if(mins==0)
+                {
+                
+                         EndGame(-1);
+                /* hr-=1;
+                  mins=59;
+                   if(hr<=0)
+                     {
+                         EndGame(-1);
+                      }*/
+                 }   
+           };
+        _cMode+=0.1;
+       if(_cMode != _gMode)
+         {
+               _gMode=_cMode;
+                 clearInterval(_tid);
+                  timer(function(){updateSpritePosition()},_time_step-(_gMode),_tid);
+               }
+       var f=_sprites.every(function(e){e==undefined?true:false});
+	   var ol=_sprites.filter(function(e){if(e!=undefined){return true;}return false;})
+        var f2=ol.every(function(e){if(e.shot==true){return true}else{return false}})
+		if(f2==true)
+		{
+			var rand=randomize(0,4);
+			if(rand==true)
+			{
+				     $$$LoadBirds=(function(){
+            var rand=randomize(0,4);
+         for(var i=0;i<=rand;i++)
+             {
+               var x=randomize(_neg_min,_neg_max);
+                   var y=randomize(_min_y,_max_y);
+                        var sprite=new Sprite({ id:_sprites.length,
+  		                             pos:{x:x,y:y},
+  			          bounds:{x:x,y:y,width:_sprite_width,height:_sprite_height},
+  			          behaviour:function(){this.decayValue-=1;                    	},
+  			          direction:randomize(2,4),
+  			          decayValue:y,
+			           shot:false,
+                                                                   spritePhase:y});
+                     _sprites.push(sprite);
+                 }
+   })();
+        
+			}
+		}
+    if(f==true )
+       {
+        
+             $$$LoadBirds=(function(){
+            var rand=randomize(0,4);
+         for(var i=0;i<=rand;i++)
+             {
+                  var x=randomize(_neg_min,_neg_max);
+                   var y=randomize(_min_y,_max_y);
+                        var sprite=new Sprite({ id:_sprites.length,
+  		                             pos:{x:-x,y:y},
+  			          bounds:{x:x,y:y,width:_sprite_width,height:_sprite_height},
+  			          behaviour:function(){this.decayValue-=1;                      	},
+  			          direction:randomize(2,4),
+  			          decayValue:y,
+			           shot:false,
+                                                                   spritePhase:y});
+                     _sprites.push(sprite);
+                 }
+   })();
+           }
+       _bdate.setSeconds(secs);
+       _bdate.setMinutes(mins);
+       _bdate.setHours(hr);
+    for(var i in _sprites){
+         var e=_sprites[i];
+       if(e != undefined){
+		   
+          if(e.bounds.x>=_farPlaneDistance)
+             {
+                delete _sprites[i];
+				
+            }
+           if(e.shot==true&&e.spritePhase>_canvas_height)
+             {
+                  delete _sprites[i];
+                  break;
+              }
+           
+          }
+  }
+}
+else
+{
+   }
+};
+
+//////////
+var PerformGameAction=function()
+{
+  if(isGameover !=true){
+ if(isGamePaused == true)
+ {
+      isGamePaused =false;
+}
+else
+{
+     aud0.volume=0.03;
+     aud0.play();
+    _sprites.forEach(function(e)
+	{
+    if(e !=undefined)
+	    {
+          var xMid=(_target_width/2)+_tPos.x;
+            var yMid=(_target_height/2)+_tPos.y;
+          if((e.bounds.x<=xMid)&&(xMid<=e.bounds.width+e.bounds.x))
+           {
+              if((e.bounds.y<=yMid)&&(yMid<=e.bounds.height+e.bounds.y                 ))
+               {
+                  if(e.shot!=true)
+				  {
+                    e.shot=true;
+                   _score+=100;
+                  }
+		      }
+           }
+       }
+      });
+     if(/*(_time_step-_gMode)==0 || */_score >=  winScore)
+      {
+        EndGame(0);
+        }
+}   
+}
+};
+
+//////////
+var UpdateGameGraphics=function(){
+if(isGamePaused==false){
+$$$RedrawGameBoard=(function(){
+_ctx.drawImage(img0,0,0);})();
+
+$$$RedrawSprites=(function(){
+ _sprites.forEach(function(e){
+if(e != undefined){
+    if(e.shot==true)
+    {
+		 _ctx.drawImage(img6,e.bounds.x,e.bounds.y);
+     }
+    else{
+        if(e.direction<=enum_Dir.SS)
+          {
+            _ctx.drawImage(img2,e.bounds.x,e.bounds.y);
+            }
+        else
+          {
+            _ctx.drawImage(img3,e.bounds.x,e.bounds.y)
+             }
+       }}
+   });
+})();
+$$$RedrawTargetBoard=(function(){
+ for(var i in _sprites){
+  var e=_sprites[i];
+ if(e !=undefined){
+  var xMid=(_target_width/2)+_tPos.x;
+            var yMid=(_target_height/2)+_tPos.y;
+    
+          if((e.bounds.x<=xMid)&&(xMid<=e.bounds.width+e.bounds.x))
+           {
+              if((e.bounds.y<=yMid)&&(yMid<=e.bounds.height+e.bounds.y))
+               {
+                   imgX=img5;
+                   break;
+               }
+            }
+          else
+              {
+                  imgX=img1; 
+                  break
+               }
+}
+
+}
+_ctx.drawImage(imgX,_tPos.x,_tPos.y);})();
+$$$RedrawObject=(function(){})();
+$$$RedrawScoreBoard=(function(){
+    _ctx.fillStyle
+    _ctx.fillStyle="#ffffff";
+    _ctx.font=_font;
+    _ctx.fillText("score:"+_score,20,_canvas_height-30);
+})();
+$$$RedrawTimeBoard=(function(){
+     _ctx.fillStyle="#ffffff";
+    _ctx.font=_font;
+    _ctx.fillText("time:"+_bdate.toTimeString().slice(0,9),_canvas_width-200,_canvas_height-30);
+
+})();
+$$$RedrawTitleBoard=(function(){})();
+    _ctx.drawImage(img4,0,0);
+}
+else
+{
+}
+};
+
+var EndGame=function(e){
+	_cn.onclick=function(){
+		GameMain();
+		_cn.click();
+	}
+     stopBackSound();
+           isGamePaused=true;
+         isGameover=true;
+    if(e==-1)
+      {
+
+          var txt="GAME OVER";
+            var txt_width=_ctx.measureText(txt).width;
+          _ctx.fillText(txt,(_canvas_width/2)-(txt_width/2),(_canvas_height/2)-20);
+          
+          var txt="Score:"+_score;
+          _ctx.font="20px Georgia";
+            var txt_width=_ctx.measureText(txt).width;
+          _ctx.fillText(txt,(_canvas_width/2)-(txt_width/2),(_canvas_height/2)+50);
+        }
+   else
+    {
+         
+          var txt="AWESOME!!!";
+            var txt_width=_ctx.measureText(txt).width;
+          _ctx.fillText(txt,(_canvas_width/2)-(txt_width/2),(_canvas_height/2)-20);
+         
+          var txt="Score:"+_score;
+          _ctx.font="20px Georgia";
+            var txt_width=_ctx.measureText(txt).width;
+          _ctx.fillText(txt,(_canvas_width/2)-(txt_width/2),(_canvas_height/2)+50);
+       }
+};
+
+//////////first function to call
+var BeginGame=(function(){
+  $$$SetGameBeginTime=(function(){
+     _bdate=new Date(0,0,0,0,5,59,59);
+     
+   })();
+ $$$SetDefaultVariables=(function(){
+       _cn=document.getElementById("game-board");
+      _ctx=_cn.getContext("2d");
+     _canvas_width=720;
+     _canvas_height=500;
+     _target_width=100;
+     _target_height=100;
+     _sprite_width=98;
+     _sprite_height=59;
+     _min_x=0;
+     _min_y=img4.height;
+     _max_x=_canvas_width-_sprite_width;
+     _max_y=_canvas_height-(_sprite_height*3);
+    _sprites=[];
+    _objects=[];
+    _gBoards=[];
+    _gLevel=1;
+    _score=0;
+    _gMode,_cMode=0;
+   isGamePaused=false;
+   isGameover=false;
+    this.onkeydown=function(e){
+    if(isGameover !=true){
+     if(e.keyCode==27)
+        {
+           togglePauseState();
+            }
+          }
+  }
+    _cn.onmousemove=function(e){
+          _tPos={x:e.x-50,y:e.y-50};
+         UpdateGameGraphics();
+ }
+   _cn.onclick=function(){
+       PerformGameAction();
+       UpdateGameGraphics();
+   }
+})();
+
+ $$$StartDecayTimer=(function(){
+     _timerId=setInterval(function(){
+        PerformGamePhysics();
+        UpdateGameGraphics();
+},_ticks);
+  })();
+
+$$$LoadBirds=(function(){
+     var rand=randomize(0,4);
+         for(var i=0;i<=rand;i++)
+             {
+                  var x=randomize(_neg_min,_neg_max);
+                   var y=randomize(_min_y,_max_y);
+                        var sprite=new Sprite({ id:_sprites.length,
+  		                             pos:{x:x,y:y},
+  			          bounds:{x:x,y:y,width:_sprite_width,height:_sprite_height},
+  			          behaviour:function(){
+                                                                          this.decayValue-=1;
+                                                                      },
+  			          direction:randomize(2,4),
+  			          decayValue:y,
+			           shot:false,
+                                                                   spritePhase:y});
+                     _sprites.push(sprite);
+                 }
+   })();
+$$$DrawGameGraphics=(function(){
+    UpdateGameGraphics();
+  })();
+         timer(function(){updateSpritePosition()},_time_step,_tid);
+          startBackSound();
+});
+
+var isHoverEnabled=true;
+var isPageFlipped=true;
+function GameMain()
+{
+     
+    _cn=document.getElementById("game-board");
+   _ctx=_cn.getContext('2d');
+   var x1,x2,x3,y1,y2,y3,w1,w2,w3,h1,h2,h3;
+   x1=(_cn.width-img7.width)/2;
+   x2=(_cn.width-img9.width)/2;
+   x3=(_cn.width-img11.width)/2;
+   y1=((_cn.height-img7.height)/3)+30;
+   y2=((_cn.height-img9.height)/2)+60
+   y3=((_cn.height-img11.height)/1.5)+90
+   w1=img7.width;
+   w2=img9.width;
+   w3=img11.width;
+   h1=img7.height;
+   h2=img9.height;
+   h3=img11.height;
+   rects.push(new Rectangle({x:x1,y:y1,width:w1,height:h1,id:'play',isFocused:false,content:img7,content_hover:img8}));
+   rects.push(new Rectangle({x:x2,y:y2,width:w2,height:h2,id:'quit',isFocused:false,content:img9,content_hover:img10}));
+   rects.push(new Rectangle({x:x3,y:y3,width:w3,height:h3,id:'about',isFocused:false,content:img11,content_hover:img12}));
+   _cn.onmousemove=function(e){
+      if(isHoverEnabled){
+     e.x=e.offsetX;e.y=e.offsetY;
+     _ctx.drawImage(img0,0,0);
+     _ctx.drawImage(img4,0,0);
+      _ctx.drawImage(img14,e.x,e.y);
+         rects.forEach(function(g){
+              if(((g.x<=e.x) && (e.x<=(g.width+g.x)))&&((g.y<=e.y)&&(e.y<=(g.height+g.y))))
+                {
+                    _ctx.drawImage(g.content_hover,g.x,g.y);
+                 }
+               else
+                 {
+                     _ctx.drawImage(g.content,g.x,g.y);
+                  } 
+            });
+			
+      _ctx.drawImage(img14,e.x,e.y);
+      }
+   }
+   _cn.onclick=function(e){
+	    isPageFlipped= !isPageFlipped;
+	   if(isPageFlipped == false){
+	  for(var i in rects){
+		  var g=rects[i];
+              if(((g.x<=e.x) && (e.x<=(g.width+g.x)))&&((g.y<=e.y)&&(e.y<=(g.height+g.y))))
+                {
+					isHoverEnabled=false;
+					if(g.id=="play")
+					{
+						BeginGame();
+						break;
+					}if(g.id=="quit")
+					{
+						break;
+					}if(g.id=="about")
+					{
+					_ctx.drawImage(img13,0,0);
+					  break;
+					}
+				}};
+  }else
+  {
+	   _ctx.drawImage(img0,0,0);
+     _ctx.drawImage(img4,0,0);
+      _ctx.drawImage(img14,e.x,e.y);
+         rects.forEach(function(g){
+              if(((g.x<=e.x) && (e.x<=(g.width+g.x)))&&((g.y<=e.y)&&(e.y<=(g.height+g.y))))
+                {
+                    _ctx.drawImage(g.content_hover,g.x,g.y);
+                 }
+               else
+                 {
+                     _ctx.drawImage(g.content,g.x,g.y);
+                  } 
+            });
+			
+      _ctx.drawImage(img14,e.x,e.y);
+	  isHoverEnabled=true;
+  }}
+  _ctx.drawImage(img0,0,0);
+  _ctx.drawImage(img4,0,0);
+  rects.forEach(function(g){
+            _ctx.drawImage(g.content,g.x,g.y);
+                  } );
+}
+this.onload=function(){
+	//call game code entry point
+	GameMain();
+}
+}
+else
+{
+   
+}
+</script></body></html>

@@ -6,6 +6,25 @@
 <meta name="viewport" content="width=device-width, initial-scale=1,maximum-scale=1, user-scalable=no">
 </head>
  <body id="body">
+ 	<script>
+  window.fbAsyncInit = function() {
+    FB.init({
+      appId      : '181530012226020',
+      xfbml      : true,
+      version    : 'v2.6'
+    });
+
+    // ADD ADDITIONAL FACEBOOK CODE HERE
+  };
+
+  (function(d, s, id){
+     var js, fjs = d.getElementsByTagName(s)[0];
+     if (d.getElementById(id)) {return;}
+     js = d.createElement(s); js.id = id;
+     js.src = "//connect.facebook.net/en_US/sdk.js";
+     fjs.parentNode.insertBefore(js, fjs);
+   }(document, 'script', 'facebook-jssdk'));
+</script>
   <div id="gl-html-content">
   <canvas id="game-board" width="720" height="500" color="#000000" style="
  cursor: none;

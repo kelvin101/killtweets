@@ -669,7 +669,7 @@ else
 	 <script>function postScoreFB(){
 			 FB.login(function(){
   // Note: The call will only work if you accept the permission request
-  FB.api('/me/feed', 'post', {message: 'Hurray! Total Kills:'+_score});
+  FB.api('/me/feed', 'post', {message: 'Hurray! Total Kills:'+_score+".Play on http://kelvin101.github.io/killtweets/"});
 }, {scope: 'publish_actions'});
 		 }</script>
 	 <button id="fbBtn" style="display:none" onclick="postScoreFB();">Post score on facebook</button></body></html>

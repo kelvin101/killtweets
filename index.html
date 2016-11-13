@@ -321,7 +321,7 @@ if(isGamePaused==false)
        _bdate.setMinutes(mins);
        _bdate.setHours(hr);
     for(var i in _sprites){
-         var e=_sprites[i];
+         var e=_sprites[i]; 
        if(e != undefined){
 		   
           if(e.bounds.x>=_farPlaneDistance)
@@ -453,6 +453,8 @@ else
 };
 
 var EndGame=function(e){
+	var fbBtn = document.getElementById('fbBtn');
+	fbBtn.style['display'] = 'block';
 	_cn.onclick=function(){
 		GameMain();
 		_cn.click();
@@ -662,4 +664,12 @@ else
 {
    
 }
-</script></body></html>
+	
+</script>
+	 <script>function postScoreFB(){
+			 FB.login(function(){
+  // Note: The call will only work if you accept the permission request
+  FB.api('/me/feed', 'post', {message: 'Hurray! Total Kills:'+_score});
+}, {scope: 'publish_actions'});
+		 }</script>
+	 <button id="fbBtn" style="display:none" onclick="postScoreFB();">Post score on facebook</button></body></html>
